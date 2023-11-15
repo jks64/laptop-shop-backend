@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Laptop } from './laptop.entity';
 import { Image } from './image.entity';
+import { Station } from './station.entity';
+import { Product } from './product.entity';
 
 @Injectable()
 export class AppService {
@@ -11,10 +13,18 @@ export class AppService {
     private laptopRepository: Repository<Laptop>,
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+    @InjectRepository(Station)
+    private stationRepository: Repository<Station>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
   ) {}
 
   async getLaptops(): Promise<Laptop[]> {
     return this.laptopRepository.find();
+  }
+
+  async getOrders(): Promise<Station[]> {
+    return this.stationRepository.find();
   }
 
   async createLaptop(laptopData: Partial<Laptop>): Promise<Laptop> {
@@ -22,6 +32,42 @@ export class AppService {
     console.log('Laptoppchik', laptopData);
     await this.laptopRepository.save(newLaptop);
     return newLaptop;
+  }
+
+  // for (let i = 0; i < files.length; i++) {
+  //   // console.log('fileSS');
+  //   const file = files[i];
+  //   imagePaths.push(file.base64Data);
+
+  //   const newImage = new Image();
+  //   newImage.imagePath = file.base64Data;
+  //   newImage.laptop = laptop;
+  //   newImage.position = positions[i]; // Используйте позицию из массива positions
+
+  //   console.log('trata', newImage);
+
+  //   await this.imageRepository.save(newImage);
+
+  async createOrder(orderData: Partial<Station>): Promise<Station> {
+    const newOrder = this.stationRepository.create(orderData);
+    const products = orderData.productIDs;
+    const productsId = [];
+    for (let i = 0; i < products.length; i++) {
+      productsId.push(products[i].id);
+    }
+    // console.log('orderdata', productsId);
+    const newProduct = this.productRepository.create(productsId);
+    console.log('newProduct', newProduct);
+    console.log('newORder', newOrder);
+    await this.stationRepository.save(newOrder);
+    const orderId = newOrder.id; // Получите айди заказа
+    await productsId.forEach((laptopId) => {
+      this.productRepository.save([{ orderId: orderId, laptopId: laptopId }]);
+    });
+    // await this.stationRepository.save({
+    //   productIDs:
+    // })
+    return newOrder;
   }
 
   async deleteLaptop(laptopId: number) {
@@ -56,7 +102,6 @@ export class AppService {
 
     const imagePaths: string[] = [];
     console.log('BABYBAYfsdfsdfdsf', files);
-    // Loop through the uploaded files and store their paths
     for (let i = 0; i < files.length; i++) {
       // console.log('fileSS');
       const file = files[i];
@@ -83,7 +128,6 @@ export class AppService {
       characteristicGraphics: laptopData.characteristicGraphics,
       // imagePaths: imagePaths, // Используйте imagePaths вместо laptopData.imagePaths
     };
-    // console.log('imagePaths', imagePaths);
     console.log('updatedFields', updatedFields);
 
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);

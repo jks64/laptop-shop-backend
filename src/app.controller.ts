@@ -30,6 +30,8 @@ import { getConnection } from 'typeorm';
 import { join } from 'path';
 import * as multer from 'multer';
 import { createReadStream } from 'fs';
+import { Station } from './station.entity';
+import { Product } from './product.entity';
 const fsAny = fs as any;
 var { promisify } = require('util');
 const sharp = require('sharp');
@@ -37,6 +39,7 @@ const sharp = require('sharp');
 var readFile = promisify(fs.readFile);
 var writeFile = promisify(fs.writeFile);
 let isLogin = false;
+
 @Controller('laptops')
 export class AppController {
   constructor(
@@ -45,6 +48,10 @@ export class AppController {
     private laptopRepository: Repository<Laptop>,
     @InjectRepository(Image)
     private imageRepository: Repository<Image>,
+    @InjectRepository(Station)
+    private stationRepository: Repository<Station>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
   ) {}
 
   @Get()
@@ -57,12 +64,10 @@ export class AppController {
           const images = await this.imageRepository.find({
             where: { laptopId: laptop.id },
           });
-
           const imageFiles = await Promise.all(
             images.map(async (image) => {
               const imagePath = path.join('uploaded photos', image.imagePath);
               const imageFile = await fs.readFile(imagePath);
-              console.log('Image file:', imageFile);
               const imagePosition = image.position;
               return { imageFile, imagePosition };
             }),
@@ -156,6 +161,91 @@ export class AppController {
     }
   }
 
+  @Post('createorder')
+  async createOrder(@Body() orderData: any, @Res() response: Response) {
+    console.log(orderData);
+    const newStation = await this.appService.createOrder(orderData);
+    response.status(200).send(200);
+  }
+
+  @Get('orders')
+  // const laptops = await this.appService.getLaptops();
+
+  // const laptopsWithImages = await Promise.all(
+  //   laptops.map(async (laptop) => {
+  //     const images = await this.imageRepository.find({
+  //       where: { laptopId: laptop.id },
+  //     });
+  async getOrders(
+    @Param('laptopId') laptopId: number,
+    @Res() response: Response,
+  ) {
+    const orders = await this.appService.getOrders();
+
+    const ordersWithProducts: object[] = [];
+    const productsByProductId = [];
+    for (const order of orders) {
+      const products = await this.productRepository.find({
+        where: { orderId: order.id },
+      });
+
+      // Получить массив с айдишниками товаров
+      const productsIds = products.map((product) => product.laptopId);
+
+      // Найти ноутбуки по массиву с айдишниками
+      const productsWithLaptops =
+        await this.laptopRepository.findByIds(productsIds);
+
+      const laptopsWithImages = await Promise.all(
+        productsWithLaptops.map(async (laptop) => {
+          const images = await this.imageRepository.find({
+            where: { laptopId: laptop.id },
+          });
+          const imageFiles = await Promise.all(
+            images.map(async (image) => {
+              const imagePath = path.join('uploaded photos', image.imagePath);
+              const imageFile = await fs.readFile(imagePath);
+              const imagePosition = image.position;
+              return { imageFile, imagePosition };
+            }),
+          );
+
+          return { ...laptop, images: imageFiles };
+        }),
+      );
+
+      const orderWithProducts = {
+        ...order,
+        products: laptopsWithImages,
+      };
+
+      ordersWithProducts.push(orderWithProducts);
+    }
+
+    console.log(productsByProductId);
+    response.send(ordersWithProducts);
+  }
+
+  // const laptops = await this.appService.getLaptops();
+
+  // const laptopsWithImages = await Promise.all(
+  //   laptops.map(async (laptop) => {
+  //     const images = await this.imageRepository.find({
+  //       where: { laptopId: laptop.id },
+  //     });
+  //     const imageFiles = await Promise.all(
+  //       images.map(async (image) => {
+  //         const imagePath = path.join('uploaded photos', image.imagePath);
+  //         const imageFile = await fs.readFile(imagePath);
+  //         const imagePosition = image.position;
+  //         return { imageFile, imagePosition };
+  //       }),
+  //     );
+
+  //     return { ...laptop, images: imageFiles };
+  //   }),
+  // );
+
   @Post()
   @UseInterceptors(
     FilesInterceptor('image', 6, {
@@ -194,7 +284,7 @@ export class AppController {
 
       const savedLaptop = await this.laptopRepository.save(laptop);
 
-      const positions = request.body['position']; // Получить массив позиций
+      const positions = request.body['position'];
       console.log('FILES: : : : :: ', files);
       for (const [index, file] of files.entries()) {
         const imagePath = path.join(file.filename); // Используйте file.filename, который содержит имя  с
@@ -247,20 +337,24 @@ export class AppController {
         return createReadStream(filePath);
       });
 
-      // Установите заголовки ответа для массива изображений
       res.setHeader('Content-Type', 'image/png'); // Измените это на соответствующий MIME-тип, если это не JPEG
 
-      // Отправьте массив файлов в ответ
       fileStreams.forEach((fileStream) => fileStream.pipe(res));
     } else {
       res.status(404).json({ message: 'Изображения не найдены' });
     }
   }
 
+    
+
   @Post('login')
-  login(@Req() request: Request, @Res() response: Response) {
-    const requestData = request.body;
-    if (request.body.password === '123keygor') {
+  login(
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    const requestData =request.body;
+
+    if (requestData.password === '123keygor') {
       isLogin = true;
       const token = jwt.sign(
         { username: requestData.username },

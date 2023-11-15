@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Laptop } from './laptop.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { Image } from './image.entity';
+import { Station } from './station.entity';
+import { Product } from './product.entity';
 
 @Module({
   imports: [
@@ -20,11 +22,11 @@ import { Image } from './image.entity';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         synchronize: true,
-        entities: [Laptop, Image],
+        entities: [Laptop, Image, Station, Product],
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Laptop, Image]), // Add Image here
+    TypeOrmModule.forFeature([Laptop, Image, Station, Product]), // Add Image here
   ],
   controllers: [AppController],
   providers: [AppService],
