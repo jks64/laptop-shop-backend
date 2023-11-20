@@ -15,7 +15,7 @@ import { Product } from './product.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
+        type: 'mysql', // Измените тип на 'mysql'
         host: configService.get('DB_HOST'),
         port: configService.get('DB_PORT'),
         username: configService.get('DB_USERNAME'),
@@ -26,7 +26,7 @@ import { Product } from './product.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Laptop, Image, Station, Product]), // Add Image here
+    TypeOrmModule.forFeature([Laptop, Image, Station, Product]),
   ],
   controllers: [AppController],
   providers: [AppService],
