@@ -5,7 +5,9 @@ import * as multer from 'multer';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {
+    cors: { origin: 'https://ltop.pro/' },
+  });
   app.use(json({ limit: '150mb' }));
   app.enableCors();
 
