@@ -22,7 +22,7 @@ export class Laptop {
   @OneToMany(() => Image, (image) => image.laptop)
   imagePaths: Image[];
 
-  @Column()
+  @Column({ type: 'text' })
   description: string;
 
   @Column()
@@ -42,6 +42,9 @@ export class Laptop {
 
   @Column()
   characteristicBatery: string;
+
+  @Column({ nullable: true })
+  brand: string;
 
   @CreateDateColumn()
   createdAt: Date;

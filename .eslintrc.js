@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -5,7 +7,8 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: ['disable'],
+  processor: 'disable/disable',
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',

@@ -29,7 +29,6 @@ export class AppService {
 
   async createLaptop(laptopData: Partial<Laptop>): Promise<Laptop> {
     const newLaptop = this.laptopRepository.create(laptopData);
-    console.log('Laptoppchik', laptopData);
     await this.laptopRepository.save(newLaptop);
     return newLaptop;
   }

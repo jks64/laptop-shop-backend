@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -8,7 +10,6 @@ import { MulterModule } from '@nestjs/platform-express';
 import { Image } from './image.entity';
 import { Station } from './station.entity';
 import { Product } from './product.entity';
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),

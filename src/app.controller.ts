@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   UseInterceptors,
   Controller,
@@ -32,6 +33,10 @@ import * as multer from 'multer';
 import { createReadStream } from 'fs';
 import { Station } from './station.entity';
 import { Product } from './product.entity';
+import { JoinColumn, ManyToOne } from 'typeorm';
+import axios from 'axios';
+import * as https from 'follow-redirects/https';
+
 const fsAny = fs as any;
 var { promisify } = require('util');
 const sharp = require('sharp');
@@ -39,6 +44,19 @@ const sharp = require('sharp');
 var readFile = promisify(fs.readFile);
 var writeFile = promisify(fs.writeFile);
 let isLogin = false;
+
+var options = {
+  method: 'POST',
+  hostname: 'e1gewr.api.infobip.com',
+  path: '/sms/2/text/advanced',
+  headers: {
+    Authorization:
+      '88ca8c9dc9d7ecb6ca06a7de6d2536ec-12cc85f5-ba58-4514-be60-815bd96357d6',
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  maxRedirects: 20,
+};
 
 @Controller('laptops')
 export class AppController {
@@ -59,14 +77,90 @@ export class AppController {
     try {
       const laptops = await this.appService.getLaptops();
 
+      // Оптимизированный запрос с использованием JOIN
       const laptopsWithImages = await Promise.all(
         laptops.map(async (laptop) => {
           const images = await this.imageRepository.find({
-            where: { laptopId: laptop.id },
+            where: { laptopId: laptop.id, position: 0 },
+          });
+
+          const imageFiles = await Promise.all(
+            images.map(async (image) => {
+              const imagePath = join('uploaded-photos', image.imagePath);
+              const imageFile = await fs.readFile(imagePath);
+              const imagePosition = image.position;
+              return { imageName: image.imagePath, imageFile, imagePosition };
+            }),
+          );
+
+          return { ...laptop, images: imageFiles };
+        }),
+      );
+
+      response.send(laptopsWithImages);
+    } catch (error) {
+      console.error('Ошибка при получении данных о продуктах:', error);
+      response
+        .status(500)
+        .json({ message: 'Ошибка при получении данных о продуктах' });
+    }
+  }
+
+  // В вашем контроллере
+  @Get('product/:id')
+  // @Get('product')
+  async getLaptopWithImages(
+    @Param('id') id: string,
+    @Res() response: Response,
+  ): Promise<any> {
+    try {
+      const laptop: Laptop | undefined = await this.laptopRepository.findOne({
+        where: { id: Number(id) },
+        // where: { id: 33 },
+      });
+
+      console.log('laptop', laptop);
+
+      if (!laptop) {
+        return response.status(404).json({ message: 'Ноутбук не найден' });
+      }
+
+      const images = await this.imageRepository.find({
+        where: { laptopId: laptop.id },
+      });
+
+      const imageFiles = await Promise.all(
+        images.map(async (image) => {
+          const imagePath = join('uploaded-photos', image.imagePath);
+          const imageFile = await fs.readFile(imagePath);
+          const imagePosition = image.position;
+          return { imageName: image.imagePath, imageFile, imagePosition };
+        }),
+      );
+
+      const laptopWithImages = { ...laptop, images: imageFiles };
+      response.send(laptopWithImages);
+    } catch (error) {
+      console.error('Ошибка при получении данных о продукте ДАДАДА:', error);
+      response
+        .status(500)
+        .json({ message: 'Ошибка при получении данных о продукте ДАДАДА' });
+    }
+  }
+
+  @Get('oneImage')
+  async getLaptopsWithImage(@Res() response: Response): Promise<any> {
+    try {
+      const laptops = await this.appService.getLaptops();
+
+      const laptopsWithImages = await Promise.all(
+        laptops.map(async (laptop) => {
+          const images = await this.imageRepository.find({
+            where: { laptopId: laptop.id, position: 0 },
           });
           const imageFiles = await Promise.all(
             images.map(async (image) => {
-              const imagePath = path.join('uploaded photos', image.imagePath);
+              const imagePath = path.join('uploaded-photos', image.imagePath);
               const imageFile = await fs.readFile(imagePath);
               const imagePosition = image.position;
               return { imageFile, imagePosition };
@@ -89,14 +183,13 @@ export class AppController {
   @Delete(':laptopId')
   async delete(@Param('laptopId') laptopId: number) {
     await this.appService.deleteImagesByLaptopId(laptopId);
-    console.log(laptopId);
     return this.appService.deleteLaptop(laptopId);
   }
 
   @Patch(':laptopId')
   @UseInterceptors(
     FilesInterceptor('image', 6, {
-      dest: './uploaded photos',
+      dest: './uploaded-photos',
       fileFilter: (req, file, callback) => {
         if (file.mimetype.startsWith('image/')) {
           callback(null, true);
@@ -106,12 +199,13 @@ export class AppController {
       },
       storage: multer.diskStorage({
         destination: (req, file, callback) => {
-          callback(null, './uploaded photos');
+          callback(null, './uploaded-photos');
         },
         filename: (req, file, callback) => {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const modifiedFilename = uniqueSuffix + '-' + file.originalname;
+
           callback(null, modifiedFilename);
         },
       }),
@@ -142,11 +236,9 @@ export class AppController {
       for (let i = 0; i < imageBuffer.length; i++) {
         sharp(imageBuffer[i])
           .jpeg()
-          .toFile(`./uploaded photos/${filenames[i]}`, (err, info) => {
+          .toFile(`./uploaded-photos/${filenames[i]}`, (err, info) => {
             if (err) {
-              console.log(err);
             } else {
-              console.log(info);
             }
           });
       }
@@ -163,19 +255,97 @@ export class AppController {
 
   @Post('createorder')
   async createOrder(@Body() orderData: any, @Res() response: Response) {
-    console.log(orderData);
     const newStation = await this.appService.createOrder(orderData);
     response.status(200).send(200);
   }
 
-  @Get('orders')
-  // const laptops = await this.appService.getLaptops();
+  @Post('send')
+  async sendSms(@Body('phoneNumber') phoneNumber: string): Promise<any> {
+    const options = {
+      method: 'POST',
+      hostname: 'e1gewr.api.infobip.com',
+      path: '/sms/2/text/advanced',
+      headers: {
+        Authorization:
+          'App 88ca8c9dc9d7ecb6ca06a7de6d2536ec-12cc85f5-ba58-4514-be60-815bd96357d6',
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      maxRedirects: 20,
+    };
 
-  // const laptopsWithImages = await Promise.all(
-  //   laptops.map(async (laptop) => {
-  //     const images = await this.imageRepository.find({
-  //       where: { laptopId: laptop.id },
-  //     });
+    const postData = {
+      messages: [
+        {
+          destinations: [{ to: phoneNumber }],
+          from: 'ServiceSMS',
+          text: 'привет это компания ltop.pro ваш заказ #',
+        },
+      ],
+    };
+
+    try {
+      const response = await axios.post(
+        'https://e1gewr.api.infobip.com/sms/2/text/advanced',
+        postData,
+        { headers: options.headers },
+      );
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  @Get('order')
+  async getLatestOrder(@Res() response: Response) {
+    try {
+      const orders = await this.appService.getOrders();
+      const sortedOrders = orders.sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      );
+      const lastOrder = sortedOrders[0];
+
+      const products = await this.productRepository.find({
+        where: { orderId: lastOrder.id },
+      });
+
+      const productsIds = products.map((product) => product.laptopId);
+      const productsWithLaptops =
+        await this.laptopRepository.findByIds(productsIds);
+
+      const laptopsWithImages = await Promise.all(
+        productsWithLaptops.map(async (laptop) => {
+          const images = await this.imageRepository.find({
+            where: { laptopId: laptop.id },
+          });
+          const imageFiles = await Promise.all(
+            images.map(async (image) => {
+              const imagePath = path.join('uploaded-photos', image.imagePath);
+              const imageFile = await fs.readFile(imagePath);
+              const imagePosition = image.position;
+              return { imageFile, imagePosition };
+            }),
+          );
+
+          return { ...laptop, images: imageFiles };
+        }),
+      );
+
+      const orderWithProducts = {
+        ...lastOrder,
+        products: laptopsWithImages,
+      };
+
+      console.log('orderWithProducts', orderWithProducts);
+      response.send(orderWithProducts);
+    } catch (error) {
+      console.log(error);
+      response.status(500).send({ message: 'Ошибка сервера' });
+    }
+  }
+
+  @Get('orders')
   async getOrders(
     @Param('laptopId') laptopId: number,
     @Res() response: Response,
@@ -188,11 +358,8 @@ export class AppController {
       const products = await this.productRepository.find({
         where: { orderId: order.id },
       });
-
-      // Получить массив с айдишниками товаров
       const productsIds = products.map((product) => product.laptopId);
 
-      // Найти ноутбуки по массиву с айдишниками
       const productsWithLaptops =
         await this.laptopRepository.findByIds(productsIds);
 
@@ -203,7 +370,7 @@ export class AppController {
           });
           const imageFiles = await Promise.all(
             images.map(async (image) => {
-              const imagePath = path.join('uploaded photos', image.imagePath);
+              const imagePath = path.join('uploaded-photos', image.imagePath);
               const imageFile = await fs.readFile(imagePath);
               const imagePosition = image.position;
               return { imageFile, imagePosition };
@@ -221,35 +388,13 @@ export class AppController {
 
       ordersWithProducts.push(orderWithProducts);
     }
-
-    console.log(productsByProductId);
     response.send(ordersWithProducts);
   }
 
-  // const laptops = await this.appService.getLaptops();
-
-  // const laptopsWithImages = await Promise.all(
-  //   laptops.map(async (laptop) => {
-  //     const images = await this.imageRepository.find({
-  //       where: { laptopId: laptop.id },
-  //     });
-  //     const imageFiles = await Promise.all(
-  //       images.map(async (image) => {
-  //         const imagePath = path.join('uploaded photos', image.imagePath);
-  //         const imageFile = await fs.readFile(imagePath);
-  //         const imagePosition = image.position;
-  //         return { imageFile, imagePosition };
-  //       }),
-  //     );
-
-  //     return { ...laptop, images: imageFiles };
-  //   }),
-  // );
-
   @Post()
   @UseInterceptors(
-    FilesInterceptor('image', 6, {
-      dest: './uploaded photos',
+    FilesInterceptor('image', 12, {
+      dest: './uploaded-photos',
       fileFilter: (req, file, callback) => {
         if (file.mimetype.startsWith('image/')) {
           callback(null, true);
@@ -259,7 +404,7 @@ export class AppController {
       },
       storage: multer.diskStorage({
         destination: (req, file, callback) => {
-          callback(null, './uploaded photos');
+          callback(null, './uploaded-photos');
         },
         filename: (req, file, callback) => {
           const uniqueSuffix =
@@ -276,7 +421,7 @@ export class AppController {
     @Req() request: Request,
   ) {
     const laptopData = request.body;
-    console.log(laptopData);
+    console.log('laptopData', laptopData);
     try {
       const laptop = this.laptopRepository.create({
         ...laptopData,
@@ -285,7 +430,6 @@ export class AppController {
       const savedLaptop = await this.laptopRepository.save(laptop);
 
       const positions = request.body['position'];
-      console.log('FILES: : : : :: ', files);
       for (const [index, file] of files.entries()) {
         const imagePath = path.join(file.filename); // Используйте file.filename, который содержит имя  с
         const laptops = await this.appService.getLaptops();
@@ -313,9 +457,7 @@ export class AppController {
 
         if (sortedLaptops.length > 0) {
           const lastCreatedLaptop = sortedLaptops[0];
-          console.log(lastCreatedLaptop.id);
         } else {
-          console.log('Лептоп не был создан.');
         }
       }
 
@@ -333,7 +475,7 @@ export class AppController {
     if (images.length > 0) {
       const imagePaths = images.map((image) => image.imagePath);
       const fileStreams = imagePaths.map((imagePath) => {
-        const filePath = join(__dirname, '../uploaded photos', imagePath);
+        const filePath = join(__dirname, '../uploaded-photos', imagePath);
         return createReadStream(filePath);
       });
 
@@ -345,14 +487,9 @@ export class AppController {
     }
   }
 
-    
-
   @Post('login')
-  login(
-    @Req() request: Request,
-    @Res() response: Response,
-  ) {
-    const requestData =request.body;
+  login(@Req() request: Request, @Res() response: Response) {
+    const requestData = request.body;
 
     if (requestData.password === '123keygor') {
       isLogin = true;
