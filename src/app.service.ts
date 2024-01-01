@@ -73,6 +73,18 @@ export class AppService {
     const deleteResult = await this.imageRepository.delete(laptopId);
     return deleteResult;
   }
+  async confirmOrder(orderId: number) {
+    const orderToUpdate = await this.stationRepository.findOneById(orderId);
+    if (!orderToUpdate) {
+      throw new Error(`Заказ с id ${orderId} не найден`);
+    }
+
+    orderToUpdate.confirmed = true;
+
+    await this.stationRepository.save(orderToUpdate);
+
+    return orderToUpdate;
+  }
 
   // app.service.ts
 

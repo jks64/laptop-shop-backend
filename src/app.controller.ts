@@ -14,8 +14,13 @@ import {
   UploadedFiles,
   NotFoundException,
   StreamableFile,
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  Query,
 } from '@nestjs/common';
 const base64ToImage = require('base64-to-image');
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppService } from './app.service';
 import { Response, Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -36,6 +41,7 @@ import { Product } from './product.entity';
 import { JoinColumn, ManyToOne } from 'typeorm';
 import axios from 'axios';
 import * as https from 'follow-redirects/https';
+import * as nodemailer from 'nodemailer';
 
 const fsAny = fs as any;
 var { promisify } = require('util');
@@ -44,19 +50,31 @@ const sharp = require('sharp');
 var readFile = promisify(fs.readFile);
 var writeFile = promisify(fs.writeFile);
 let isLogin = false;
-
 var options = {
   method: 'POST',
   hostname: 'e1gewr.api.infobip.com',
-  path: '/sms/2/text/advanced',
+  path: '/email/3/send',
   headers: {
     Authorization:
-      '88ca8c9dc9d7ecb6ca06a7de6d2536ec-12cc85f5-ba58-4514-be60-815bd96357d6',
-    'Content-Type': 'application/json',
+      'App ********************************-********-****-****-****-********57d6',
     Accept: 'application/json',
   },
   maxRedirects: 20,
 };
+const uploadedFileNames: string[] = [];
+
+// var options = {
+//   method: 'POST',
+//   hostname: 'e1gewr.api.infobip.com',
+//   path: '/sms/2/text/advanced',
+//   headers: {
+//     Authorization:
+//       '88ca8c9dc9d7ecb6ca06a7de6d2536ec-12cc85f5-ba58-4514-be60-815bd96357d6',
+//     'Content-Type': 'application/json',
+//     Accept: 'application/json',
+//   },
+//   maxRedirects: 20,
+// };
 
 @Controller('laptops')
 export class AppController {
@@ -87,9 +105,9 @@ export class AppController {
           const imageFiles = await Promise.all(
             images.map(async (image) => {
               const imagePath = join('uploaded-photos', image.imagePath);
-              const imageFile = await fs.readFile(imagePath);
               const imagePosition = image.position;
-              return { imageName: image.imagePath, imageFile, imagePosition };
+              const imageUrl = image.imageUrl;
+              return { imageName: image.imagePath, imagePosition, imageUrl };
             }),
           );
 
@@ -108,7 +126,6 @@ export class AppController {
 
   // В вашем контроллере
   @Get('product/:id')
-  // @Get('product')
   async getLaptopWithImages(
     @Param('id') id: string,
     @Res() response: Response,
@@ -132,9 +149,9 @@ export class AppController {
       const imageFiles = await Promise.all(
         images.map(async (image) => {
           const imagePath = join('uploaded-photos', image.imagePath);
-          const imageFile = await fs.readFile(imagePath);
           const imagePosition = image.position;
-          return { imageName: image.imagePath, imageFile, imagePosition };
+          const imageUrl = image.imageUrl;
+          return { imageName: image.imagePath, imageUrl, imagePosition };
         }),
       );
 
@@ -205,7 +222,6 @@ export class AppController {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const modifiedFilename = uniqueSuffix + '-' + file.originalname;
-
           callback(null, modifiedFilename);
         },
       }),
@@ -255,8 +271,96 @@ export class AppController {
 
   @Post('createorder')
   async createOrder(@Body() orderData: any, @Res() response: Response) {
-    const newStation = await this.appService.createOrder(orderData);
-    response.status(200).send(200);
+    try {
+      const newStation = await this.appService.createOrder(orderData);
+      response.status(200).send(200);
+    } catch (error) {
+      console.error(error);
+      response.status(500).send('Internal Server Error');
+    }
+  }
+
+  @Get('getORder')
+  async getOrder(@Query('orderId') orderId: any) {
+    this.appService.confirmOrder(orderId);
+    return 'Заказ подтвержден успешно';
+  }
+
+  @Post('email')
+  async sendEmail(
+    @Body('email') email: string,
+    @Body('data') data: { orderId: any; paymentMethod: string },
+  ): Promise<any> {
+    let textToSend: string = '';
+    const notebookTitles = data.orderId.products.map(
+      (product) => product.title,
+    );
+    const notebookTitlesString = notebookTitles.join(', ');
+    const productsPrice = data.orderId.products.reduce(
+      (sum, product) => sum + product.price,
+      0,
+    );
+    const confirmationLink = `http://192.168.1.106:3000/laptops/getORder?orderId=${data.orderId.id}`;
+
+    switch (data.paymentMethod) {
+      case 'Наложенный платеж':
+        textToSend = `
+        <p>Вітаємо! Дякуємо за покупку в нашому магазині. Номер Вашого заказу #${data.orderId.id} Ваш товар: ${notebookTitlesString} ціна: ${productsPrice} наш менеджер зв'яжется з вами найблишчим часом для підтвредження замовлення. Якщо ви хочете підтвердити замовлення без зв'язку натисніть на кнопку</p>
+        <a href="${confirmationLink}" style="background-color: #4CAF50; /* Зеленый цвет */
+        border: none;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        padding: 10px 20px;">Подтвердить заказ</a>
+      `;
+        break;
+      case 'Перевод на карту':
+        textToSend = `<p>Вітаємо! Дякуємо за покупку в нашому магазині. Номер Вашого заказу #${data.orderId.id} Ваш товар: ${notebookTitlesString}  Просимо оплатити суму ${productsPrice} на карту 5375 4141 0997 4393 ,
+        
+        пілся цього скинути квитанцію на номер +380973279521. Після Оплати ваш товар буде відправлений до кінця доби.</p>`;
+        break;
+      case 'На расчётный счет':
+        textToSend = `<p style="white-space: pre;">Вітаємо! Дякуємо за покупку в нашому магазині. Номер Вашого заказу #${data.orderId.id} Ваш товар: ${notebookTitlesString}  Просимо оплатити суму ${productsPrice} Поповнення за реквізитами
+                        Отримувач: ФОП Горобець Антон Миколайович 
+                        IBAN: UA623220010000026002310108684 
+                        ІПН/ЄДРПОУ: 2917318873 
+                        Акціонерне товариство: УНІВЕРСАЛ БАНК 
+                        МФО: 322001 
+                        ЄДРПОУ Банку: 21133352, пілся цього скинути квитанцію на номер +380973279521. 
+                        Після Оплати ваш товар буде відправлений до кінця доби.
+                        </p>`;
+        break;
+    }
+
+    let transporter = nodemailer.createTransport({
+      host: 'smtp.hostinger.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'ltopbusiness@ltop.pro', // замените на свой адрес электронной почты
+        pass: '123keygoR!', // замените на свой пароль
+      },
+    });
+
+    let mailOptions = {
+      from: 'ltopbusiness@ltop.pro', // замените на свой адрес электронной почты
+      to: email,
+      subject: 'Ltop',
+      html: `${textToSend}`, // Используйте html вместо text
+      // text: `${textToSend}!`,
+    };
+
+    transporter.sendMail(mailOptions, (error: any, info: any) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
   }
 
   @Post('send')
@@ -371,9 +475,9 @@ export class AppController {
           const imageFiles = await Promise.all(
             images.map(async (image) => {
               const imagePath = path.join('uploaded-photos', image.imagePath);
-              const imageFile = await fs.readFile(imagePath);
               const imagePosition = image.position;
-              return { imageFile, imagePosition };
+              const imageUrl = image.imageUrl;
+              return { imageUrl, imagePosition };
             }),
           );
 
@@ -410,6 +514,8 @@ export class AppController {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const modifiedFilename = uniqueSuffix + '-' + file.originalname;
+          req['modifiedFilename'] = modifiedFilename;
+          uploadedFileNames.push(modifiedFilename);
           callback(null, modifiedFilename);
         },
       }),
@@ -428,19 +534,22 @@ export class AppController {
       });
 
       const savedLaptop = await this.laptopRepository.save(laptop);
-
-      const positions = request.body['position'];
       for (const [index, file] of files.entries()) {
-        const imagePath = path.join(file.filename); // Используйте file.filename, который содержит имя  с
+        const modifiedFilename = request['modifiedFilename'];
+        console.log('uploadedFileNames', uploadedFileNames);
+        const imageUrl = `http://192.168.1.106:3000/uploaded-photos/${uploadedFileNames[index]}`;
+        const positions = request.body['position'];
+        const imagePath = path.join(file.filename);
         const laptops = await this.appService.getLaptops();
         const laptopIds = laptops.map((laptop) => laptop.id);
         const laptopIdnew = savedLaptop;
         const image = new Image();
         const position = positions;
+
         const ArrPos: any = Array.from(position);
         //falfa
+        image.imageUrl = imageUrl;
         image.position = ArrPos[index];
-
         image.imagePath = imagePath;
 
         const sortedLaptops = await this.laptopRepository.find({

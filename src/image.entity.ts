@@ -24,4 +24,7 @@ export class Image {
 
   @Column()
   position: number;
+
+  @Column({ nullable: true })
+  imageUrl: string;
 }
