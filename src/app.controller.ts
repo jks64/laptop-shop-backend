@@ -300,7 +300,7 @@ export class AppController {
       (sum, product) => sum + product.price,
       0,
     );
-    const confirmationLink = `http://192.168.1.106:3000/laptops/getORder?orderId=${data.orderId.id}`;
+    const confirmationLink = `https://91.239.232.14:443/laptops/getORder?orderId=${data.orderId.id}`;
 
     switch (data.paymentMethod) {
       case 'Наложенный платеж':
@@ -537,7 +537,7 @@ export class AppController {
       for (const [index, file] of files.entries()) {
         const modifiedFilename = request['modifiedFilename'];
         console.log('uploadedFileNames', uploadedFileNames);
-        const imageUrl = `http://192.168.1.106:3000/uploaded-photos/${uploadedFileNames[index]}`;
+        const imageUrl = `https://91.239.232.14:443/uploaded-photos/${uploadedFileNames[index]}`;
         const positions = request.body['position'];
         const imagePath = path.join(file.filename);
         const laptops = await this.appService.getLaptops();
