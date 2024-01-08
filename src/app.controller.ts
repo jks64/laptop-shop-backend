@@ -536,8 +536,8 @@ export class AppController {
       const savedLaptop = await this.laptopRepository.save(laptop);
       for (const [index, file] of files.entries()) {
         const modifiedFilename = request['modifiedFilename'];
-        console.log('uploadedFileNames', uploadedFileNames);
-        const imageUrl = `https://91.239.232.14:443/uploaded-photos/${uploadedFileNames[index]}`;
+        console.log('uploadedFileNamesss', uploadedFileNames);
+        const imageUrl = `https://91.239.232.14:443/uploaded-photos/${modifiedFilename[index]}`;
         const positions = request.body['position'];
         const imagePath = path.join(file.filename);
         const laptops = await this.appService.getLaptops();
