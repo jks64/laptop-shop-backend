@@ -537,7 +537,7 @@ export class AppController {
       for (const [index, file] of files.entries()) {
         const modifiedFilename = request['modifiedFilename'];
         console.log('uploadedFileNamesss', uploadedFileNames);
-        const imageUrl = `https://91.239.232.14:443/uploaded-photos/${modifiedFilename[index]}`;
+        const imageUrl = `https://91.239.232.14:443/uploaded-photos/${uploadedFileNames[index]}`;
         const positions = request.body['position'];
         const imagePath = path.join(file.filename);
         const laptops = await this.appService.getLaptops();
