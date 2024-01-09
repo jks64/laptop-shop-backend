@@ -121,10 +121,10 @@ export class AppService {
       const file = files[i];
       const newImage = new Image();
       const imageUrl = `https://91.239.232.14:443/uploaded-photos/${file.filename}`;
-      newImage.imagePath = imageUrl; // Или другое поле, где вы храните изображение
+      newImage.imageUrl = imageUrl; // Или другое поле, где вы храните изображение
+      newImage.imagePath = file.filename; // Или другое поле, где вы храните изображение
       newImage.laptop = laptop;
       newImage.position = positions[i];
-
       await this.imageRepository.save(newImage);
     }
 
