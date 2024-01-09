@@ -91,8 +91,8 @@ export class AppService {
   async updateLaptop(
     laptopId: number,
     laptopData: Partial<Laptop>,
-    files: Array<any>,
-    positions: number[], // Получите позиции из тела запроса
+    positions: number[],
+    files: Express.Multer.File[],
   ) {
     const laptop = await this.laptopRepository.findOne({
       where: { id: laptopId },
@@ -102,33 +102,7 @@ export class AppService {
       return null;
     }
 
-    // Удаление старых изображений
-    const oldImages = await this.imageRepository.find({
-      where: { laptopId: laptopId },
-    });
-    console.log('oLx', oldImages);
-    for (let i = 0; i < oldImages.length; i++) {
-      await this.imageRepository.remove(oldImages[i]);
-    }
-
-    const imagePaths: string[] = [];
-    console.log('BABYBAYfsdfsdfdsf', files);
-    for (let i = 0; i < files.length; i++) {
-      // console.log('fileSS');
-      const file = files[i];
-      imagePaths.push(file.base64Data);
-
-      const newImage = new Image();
-      newImage.imagePath = file.base64Data;
-      newImage.laptop = laptop;
-      newImage.position = positions[i]; // Используйте позицию из массива positions
-
-      console.log('trata', newImage);
-
-      await this.imageRepository.save(newImage);
-    }
-    console.log('pATH', imagePaths);
-    const updatedFields = {
+    const updatedFields: Partial<Laptop> = {
       title: laptopData.title,
       price: laptopData.price,
       description: laptopData.description,
@@ -137,11 +111,22 @@ export class AppService {
       characteristicProcessor: laptopData.characteristicProcessor,
       characteristicStorage: laptopData.characteristicStorage,
       characteristicGraphics: laptopData.characteristicGraphics,
-      // imagePaths: imagePaths, // Используйте imagePaths вместо laptopData.imagePaths
     };
-    console.log('updatedFields', updatedFields);
 
+    // Обновление полей модели Laptop
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);
+
+    // Проход по каждому файлу и добавление его в соответствующее место
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const newImage = new Image();
+      const imageUrl = `https://91.239.232.14:443/uploaded-photos/${file.filename}`;
+      newImage.imagePath = imageUrl; // Или другое поле, где вы храните изображение
+      newImage.laptop = laptop;
+      newImage.position = positions[i];
+
+      await this.imageRepository.save(newImage);
+    }
 
     const updatedLaptop = await this.laptopRepository.findOne({
       where: { id: laptop.id },

@@ -205,15 +205,7 @@ export class AppController {
 
   @Patch(':laptopId')
   @UseInterceptors(
-    FilesInterceptor('image', 6, {
-      dest: './uploaded-photos',
-      fileFilter: (req, file, callback) => {
-        if (file.mimetype.startsWith('image/')) {
-          callback(null, true);
-        } else {
-          callback(new Error('Только изображения разрешены'), false);
-        }
-      },
+    FilesInterceptor('image', null, {
       storage: multer.diskStorage({
         destination: (req, file, callback) => {
           callback(null, './uploaded-photos');
@@ -222,6 +214,7 @@ export class AppController {
           const uniqueSuffix =
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           const modifiedFilename = uniqueSuffix + '-' + file.originalname;
+          req['modifiedFilename'] = modifiedFilename;
           callback(null, modifiedFilename);
         },
       }),
@@ -229,44 +222,26 @@ export class AppController {
   )
   async updateLaptop(
     @Param('laptopId') laptopId: number,
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body() laptopData: Partial<Laptop>,
-    @Body('position') positions: number[],
-    @Body('image') images: string[],
+    @Body() laptopData,
+    @Req() request: Request,
+    @UploadedFiles() files,
+    @Res() res: Response,
   ) {
-    if (files.length <= 0) {
-      const path = './загруженные фотографии';
-      let base64Image = images.map((ell) => ell.split(';base64,').pop());
-      const fullArray = Array.from(positions);
-      let filenames = [];
-      const positionFileObjects = fullArray.map((position, index) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const modifiedFilename = uniqueSuffix + '-' + 'image' + '.jpeg';
-        filenames.push(modifiedFilename);
-        const base64Data = images[index];
-        return { position: position, base64Data: modifiedFilename };
-      });
-      const imageBuffer = base64Image.map((base64Image) =>
-        Buffer.from(base64Image, 'base64'),
-      );
-      for (let i = 0; i < imageBuffer.length; i++) {
-        sharp(imageBuffer[i])
-          .jpeg()
-          .toFile(`./uploaded-photos/${filenames[i]}`, (err, info) => {
-            if (err) {
-            } else {
-            }
-          });
-      }
+    console.log('laptopId:', laptopData.position);
+    console.log('laptopData:', laptopData);
+    console.log('files:', files);
 
-      const updatedLaptop = await this.appService.updateLaptop(
-        laptopId,
-        laptopData,
-        positionFileObjects,
-        positions,
-      );
-      return updatedLaptop;
-    }
+    const positions = laptopData.position
+
+    const updatedLaptop = await this.appService.updateLaptop(
+      laptopId,
+      laptopData,
+      positions,
+      files
+    );
+
+    res.status(201).send();
+    return updatedLaptop;
   }
 
   @Post('createorder')
@@ -426,9 +401,9 @@ export class AppController {
           const imageFiles = await Promise.all(
             images.map(async (image) => {
               const imagePath = path.join('uploaded-photos', image.imagePath);
-              const imageFile = await fs.readFile(imagePath);
+              const imageUrl = image.imageUrl;
               const imagePosition = image.position;
-              return { imageFile, imagePosition };
+              return { imageUrl, imagePosition };
             }),
           );
 
