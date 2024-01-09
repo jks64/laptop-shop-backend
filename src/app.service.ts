@@ -138,7 +138,7 @@ export class AppService {
     console.log('imageUrls', imageUrls);
     const allImageUrls = imageUrls
       ? [...imageUrls, ...newImageUrls]
-      : newImageUrls.map(String);
+      : newImageUrls;
 
     // console.log('allImageUrls', allImageUrls);
     function generateLaptopName() {
