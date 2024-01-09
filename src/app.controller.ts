@@ -227,17 +227,20 @@ export class AppController {
     @UploadedFiles() files,
     @Res() res: Response,
   ) {
-    console.log('laptopId:', laptopData.position);
-    console.log('laptopData:', laptopData);
-    console.log('files:', files);
-
-    const positions = laptopData.position
+    // console.log('laptopId:', laptopData.position);
+    console.log('Positions:', laptopData.position);
+    console.log('laptopURLS[0]:', laptopData.imageUrl);
+    // console.log('files:', files);
+    // console.log('laptopData:', laptopData);
+    const imageUrls = laptopData.imageUrl;
+    const positions = laptopData.position;
 
     const updatedLaptop = await this.appService.updateLaptop(
       laptopId,
       laptopData,
       positions,
-      files
+      imageUrls,
+      files,
     );
 
     res.status(201).send();

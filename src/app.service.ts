@@ -93,6 +93,7 @@ export class AppService {
     laptopData: Partial<Laptop>,
     positions: number[],
     files: Express.Multer.File[],
+    imageUrls: string[],
   ) {
     const laptop = await this.laptopRepository.findOne({
       where: { id: laptopId },
@@ -116,13 +117,25 @@ export class AppService {
     // Обновление полей модели Laptop
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);
 
+    const oldImages = await this.imageRepository.find({
+      where: { laptopId: laptopId },
+    });
+    for (let i = 0; i < oldImages.length; i++) {
+      await this.imageRepository.remove(oldImages[i]);
+    }
+
     // Проход по каждому файлу и добавление его в соответствующее место
+    const newImageUrls = files.map(
+      (file) => `https://91.239.232.14:443/uploaded-photos/${file.filename}`,
+    );
+
+    const allImageUrls = [...imageUrls, ...newImageUrls];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const newImage = new Image();
-      const imageUrl = `https://91.239.232.14:443/uploaded-photos/${file.filename}`;
-      newImage.imageUrl = imageUrl; // Или другое поле, где вы храните изображение
-      newImage.imagePath = file.filename; // Или другое поле, где вы храните изображение
+      newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
+      newImage.imagePath = file.filename;
       newImage.laptop = laptop;
       newImage.position = positions[i];
       await this.imageRepository.save(newImage);
