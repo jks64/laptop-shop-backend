@@ -136,6 +136,7 @@ export class AppService {
 
     const imageUrls = laptopData.imageUrl;
     console.log('imageUrls', imageUrls);
+    console.log('imageUrlstype', typeof imageUrls);
     const allImageUrls = imageUrls
       ? [...imageUrls, ...newImageUrls]
       : newImageUrls;
