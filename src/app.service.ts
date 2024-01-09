@@ -137,7 +137,7 @@ export class AppService {
     const imageUrls = laptopData.imageUrl;
     console.log('imageUrls', imageUrls);
     const allImageUrls = imageUrls
-      ? [...imageUrls.map(String), ...newImageUrls.map(String)]
+      ? [...imageUrls, ...newImageUrls]
       : newImageUrls.map(String);
 
     // console.log('allImageUrls', allImageUrls);
