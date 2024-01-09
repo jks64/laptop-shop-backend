@@ -148,10 +148,14 @@ export class AppService {
       return laptopName;
     }
     for (let i = 0; i < allImageUrls.length; i++) {
-      const file = files[i];
       const newImage = new Image();
       newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
-      newImage.imagePath = file.filename;
+      if (files && files[i]) {
+        const file = files[i];
+        newImage.imagePath = file.filename;
+      } else {
+        newImage.imagePath = generateLaptopName();
+      }
       newImage.laptop = laptop;
       newImage.position = positions[i];
       await this.imageRepository.save(newImage);
