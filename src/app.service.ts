@@ -137,7 +137,9 @@ export class AppService {
 
     const imageUrls = laptopData.imageUrl;
     console.log('imageUrls', imageUrls);
-    const allImageUrls = [...imageUrls, ...newImageUrls];
+    const allImageUrls = imageUrls
+      ? [...imageUrls, ...newImageUrls]
+      : [...newImageUrls];
     console.log('allImageUrls', allImageUrls);
     function generateLaptopName() {
       const randomNumber = Math.floor(Math.random() * 1000) + 1;
