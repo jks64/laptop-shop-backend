@@ -90,10 +90,9 @@ export class AppService {
 
   async updateLaptop(
     laptopId: number,
-    laptopData: Partial<Laptop>,
+    laptopData,
     positions: number[],
     files: Express.Multer.File[],
-    imageUrls: string[],
   ) {
     const laptop = await this.laptopRepository.findOne({
       where: { id: laptopId },
@@ -125,12 +124,20 @@ export class AppService {
     }
 
     // Проход по каждому файлу и добавление его в соответствующее место
-    const newImageUrls = files.map(
+    // console.log('newImageUrls', newImageUrls);
+    const filteredFiles = files.filter((item) => typeof item === 'object');
+
+    console.log('files', filteredFiles);
+    const newImageUrls = filteredFiles.map(
+      // (file) => `http://localhost:3000/uploaded-photos/${file.filename}`,
       (file) => `https://91.239.232.14:443/uploaded-photos/${file.filename}`,
     );
 
-    const allImageUrls = [...imageUrls, ...newImageUrls];
+    console.log('newImageUrls', newImageUrls);
 
+    const imageUrls = laptopData.imageUrl;
+    const allImageUrls = [...imageUrls, ...newImageUrls];
+    console.log('allImageUrls', allImageUrls);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const newImage = new Image();

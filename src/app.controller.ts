@@ -239,7 +239,6 @@ export class AppController {
       laptopId,
       laptopData,
       positions,
-      imageUrls,
       files,
     );
 
