@@ -151,7 +151,7 @@ export class AppService {
       newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
       if (files && files[i]) {
         const file = files[i];
-        newImage.imageUrl = file[i]; // Выберите правильный индекс из объединенного массива
+        newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
         newImage.imagePath = file.filename;
       } else {
         newImage.imagePath = generateLaptopName();
