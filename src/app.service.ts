@@ -137,8 +137,8 @@ export class AppService {
     const imageUrls = laptopData.imageUrl;
     console.log('imageUrls', imageUrls);
     const allImageUrls = imageUrls
-      ? [...imageUrls, ...newImageUrls]
-      : newImageUrls;
+      ? [...imageUrls.map(String), ...newImageUrls.map(String)]
+      : newImageUrls.map(String);
 
     // console.log('allImageUrls', allImageUrls);
     function generateLaptopName() {
