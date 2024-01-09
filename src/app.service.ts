@@ -138,7 +138,16 @@ export class AppService {
     const imageUrls = laptopData.imageUrl;
     const allImageUrls = [...imageUrls, ...newImageUrls];
     console.log('allImageUrls', allImageUrls);
-    for (let i = 0; i < files.length; i++) {
+    function generateLaptopName() {
+      // Генерация случайного числа от 1 до 1000
+      const randomNumber = Math.floor(Math.random() * 1000) + 1;
+
+      // Сборка строки
+      const laptopName = `laptop${randomNumber}`;
+
+      return laptopName;
+    }
+    for (let i = 0; i < allImageUrls.length; i++) {
       const file = files[i];
       const newImage = new Image();
       newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
