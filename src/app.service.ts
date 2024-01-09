@@ -132,7 +132,6 @@ export class AppService {
       // (file) => `http://localhost:3000/uploaded-photos/${file.filename}`,
       (file) => `https://91.239.232.14:443/uploaded-photos/${file.filename}`,
     );
-
     console.log('newImageUrls', newImageUrls);
 
     const imageUrls = laptopData.imageUrl;
@@ -140,7 +139,8 @@ export class AppService {
     const allImageUrls = imageUrls
       ? [...imageUrls, ...newImageUrls]
       : newImageUrls;
-    console.log('allImageUrls', allImageUrls);
+
+    // console.log('allImageUrls', allImageUrls);
     function generateLaptopName() {
       const randomNumber = Math.floor(Math.random() * 1000) + 1;
       const laptopName = `laptop${randomNumber}`;
@@ -151,7 +151,7 @@ export class AppService {
       newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
       if (files && files[i]) {
         const file = files[i];
-        newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
+        newImage.imageUrl = allImageUrls[i];
         newImage.imagePath = file.filename;
       } else {
         newImage.imagePath = generateLaptopName();
