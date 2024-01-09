@@ -136,15 +136,12 @@ export class AppService {
     console.log('newImageUrls', newImageUrls);
 
     const imageUrls = laptopData.imageUrl;
+    console.log('imageUrls', imageUrls);
     const allImageUrls = [...imageUrls, ...newImageUrls];
     console.log('allImageUrls', allImageUrls);
     function generateLaptopName() {
-      // Генерация случайного числа от 1 до 1000
       const randomNumber = Math.floor(Math.random() * 1000) + 1;
-
-      // Сборка строки
       const laptopName = `laptop${randomNumber}`;
-
       return laptopName;
     }
     for (let i = 0; i < allImageUrls.length; i++) {
@@ -152,6 +149,7 @@ export class AppService {
       newImage.imageUrl = allImageUrls[i]; // Выберите правильный индекс из объединенного массива
       if (files && files[i]) {
         const file = files[i];
+        newImage.imageUrl = file[i]; // Выберите правильный индекс из объединенного массива
         newImage.imagePath = file.filename;
       } else {
         newImage.imagePath = generateLaptopName();
