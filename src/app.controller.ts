@@ -282,7 +282,7 @@ export class AppController {
     switch (data.paymentMethod) {
       case 'Наложенный платеж':
         textToSend = `
-        <p>Вітаємо! Дякуємо за покупку в нашому магазині. Номер Вашого заказу #${data.orderId.id} Ваш товар: ${notebookTitlesString} ціна: ${productsPrice} наш менеджер зв'яжется з вами найблишчим часом для підтвредження замовлення. Якщо ви хочете підтвердити замовлення без зв'язку натисніть на кнопку</p>
+        <p>Вітаємо! Дякуємо за покупку в нашому магазині. Номер Вашого заказу #${data.orderId.id} Ваш товар: ${notebookTitlesString} ціна: ${productsPrice} грн. Наш менеджер зв'яжется з вами найблишчим часом для підтвредження замовлення. Якщо ви хочете підтвердити замовлення без зв'язку натисніть на кнопку</p>
         <a href="${confirmationLink}" style="background-color: #4CAF50; /* Зеленый цвет */
         border: none;
         color: white;
