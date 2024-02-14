@@ -114,6 +114,7 @@ export class AppService {
       inStock: laptopData.inStock,
     };
     console.log('updatedFields', updatedFields);
+    console.log('laptopData', laptopData);
     // Обновление полей модели Laptop
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);
 
