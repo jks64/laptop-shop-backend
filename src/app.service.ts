@@ -111,6 +111,7 @@ export class AppService {
       characteristicProcessor: laptopData.characteristicProcessor,
       characteristicStorage: laptopData.characteristicStorage,
       characteristicGraphics: laptopData.characteristicGraphics,
+      inStock: laptopData.inStock,
     };
 
     // Обновление полей модели Laptop

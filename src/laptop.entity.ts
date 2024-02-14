@@ -31,6 +31,9 @@ export class Laptop {
   @Column()
   characteristicMemory: string;
 
+  @Column({ nullable: true, default: true })
+  inStock: boolean;
+
   @Column()
   characteristicProcessor: string;
 
