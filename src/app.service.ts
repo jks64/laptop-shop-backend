@@ -113,7 +113,7 @@ export class AppService {
       characteristicGraphics: laptopData.characteristicGraphics,
       inStock: laptopData.inStock,
     };
-
+    console.log('updatedFields', updatedFields);
     // Обновление полей модели Laptop
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);
 
