@@ -136,8 +136,6 @@ export class AppController {
         // where: { id: 33 },
       });
 
-      console.log('laptop', laptop);
-
       if (!laptop) {
         return response.status(404).json({ message: 'Ноутбук не найден' });
       }
@@ -228,8 +226,7 @@ export class AppController {
     @Res() res: Response,
   ) {
     // console.log('laptopId:', laptopData.position);
-    console.log('Positions:', laptopData.position);
-    console.log('laptopURLS[0]:', laptopData.imageUrl);
+
     // console.log('files:', files);
     // console.log('laptopData:', laptopData);
     const imageUrls = laptopData.imageUrl;
