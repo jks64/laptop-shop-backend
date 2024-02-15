@@ -201,6 +201,22 @@ export class AppController {
     return this.appService.deleteLaptop(laptopId);
   }
 
+  @Patch('stock/:laptopId')
+  async updateLaptopStock(
+    @Param('laptopId') laptopId: number,
+    @Body() inStock,
+    @Req() request: Request,
+    @Res() res: Response,
+  ) {
+    const updatedLaptop = await this.appService.updateLaptopStock(
+      laptopId,
+      inStock,
+    );
+
+    res.status(201).send();
+    return updatedLaptop;
+  }
+
   @Patch(':laptopId')
   @UseInterceptors(
     FilesInterceptor('image', null, {
