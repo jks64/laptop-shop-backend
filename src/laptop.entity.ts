@@ -31,7 +31,7 @@ export class Laptop {
   @Column()
   characteristicMemory: string;
 
-  @Column({ nullable: true, default: true })
+  @Column({ default: true, type: 'boolean' }) // Указываем тип boolean
   inStock: boolean;
 
   @Column()

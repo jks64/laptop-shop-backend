@@ -111,10 +111,10 @@ export class AppService {
       characteristicProcessor: laptopData.characteristicProcessor,
       characteristicStorage: laptopData.characteristicStorage,
       characteristicGraphics: laptopData.characteristicGraphics,
-      inStock: laptopData.inStock,
+      inStock: laptopData.inStock === 'true',
     };
-    // console.log('updatedFields', updatedFields);
-    console.log('laptopData', laptopData);
+    console.log('updatedFields', updatedFields);
+    // console.log('laptopData', laptopData);
     // Обновление полей модели Laptop
     await this.laptopRepository.update({ id: laptop.id }, updatedFields);
 
