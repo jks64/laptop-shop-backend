@@ -88,14 +88,15 @@ export class AppService {
 
   // app.service.ts
 
-  async updateLaptopStock(laptopId: number, inStock: any) {
+  async updateLaptopStock(laptopId: number, inStock) {
     const laptop = await this.laptopRepository.findOne({
       where: { id: laptopId },
     });
     const upedateFields = {
-      inStock: inStock === 'true',
+      inStock: inStock.inStock === true,
     };
-
+    console.log('upedateFields', upedateFields);
+    console.log('inStock', inStock.typeof);
     await this.laptopRepository.update({ id: laptop.id }, upedateFields);
     const updatedLaptop = await this.laptopRepository.findOne({
       where: { id: laptop.id },
