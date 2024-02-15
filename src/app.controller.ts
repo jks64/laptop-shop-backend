@@ -216,6 +216,21 @@ export class AppController {
     res.status(201).send();
     return updatedLaptop;
   }
+  @Patch('hidden/:laptopId')
+  async updateLaptopHidden(
+    @Param('laptopId') laptopId: number,
+    @Body() hidden,
+    @Req() request: Request,
+    @Res() res: Response,
+  ) {
+    const updatedLaptop = await this.appService.updateLaptopHidden(
+      laptopId,
+      hidden,
+    );
+
+    res.status(201).send();
+    return updatedLaptop;
+  }
 
   @Patch(':laptopId')
   @UseInterceptors(

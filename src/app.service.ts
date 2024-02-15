@@ -104,6 +104,23 @@ export class AppService {
     return updatedLaptop;
   }
 
+  async updateLaptopHidden(laptopId: number, hidden) {
+    const laptop = await this.laptopRepository.findOne({
+      where: { id: laptopId },
+    });
+    const upedateFields = {
+      hidden: hidden.hidden === true,
+    };
+    console.log('upedateFields', upedateFields);
+    console.log('hidden', hidden);
+    await this.laptopRepository.update({ id: laptop.id }, upedateFields);
+    const updatedLaptop = await this.laptopRepository.findOne({
+      where: { id: laptop.id },
+    });
+    console.log(updatedLaptop);
+    return updatedLaptop;
+  }
+
   async updateLaptop(
     laptopId: number,
     laptopData,

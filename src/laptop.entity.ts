@@ -34,6 +34,9 @@ export class Laptop {
   @Column({ default: true, type: 'boolean' }) // Указываем тип boolean
   inStock: boolean;
 
+  @Column({ default: false, type: 'boolean' }) // Указываем тип boolean
+  hidden: boolean;
+
   @Column()
   characteristicProcessor: string;
 
