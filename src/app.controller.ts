@@ -367,6 +367,62 @@ export class AppController {
       }
     });
   }
+  @Post('adminemail')
+  async sendAdminEmail(
+    @Body('email') email: string,
+    @Body('data') data: { orderId: any; paymentMethod: string },
+  ): Promise<any> {
+    let textToSend: string = '';
+    const notebookTitles = data.orderId.products.map(
+      (product) => product.title,
+    );
+    const notebookTitlesString = notebookTitles.join(', ');
+    const productsPrice = data.orderId.products.reduce(
+      (sum, product) => sum + product.price,
+      0,
+    );
+    const confirmationLink = `https://91.239.232.14:443/laptops/getORder?orderId=${data.orderId.id}`;
+
+    textToSend = `
+        <p>Нове замовленя! Номер замовлення #${data.orderId.id} товар: ${notebookTitlesString} ціна: ${productsPrice} грн. спосіб оплати
+        ${data.paymentMethod} Имя: ${data.orderId.name} Номер телефона: ${data.orderId.phoneNumber} город: ${data.orderId?.city} відділення ${data.orderId?.station} email: ${data.orderId?.email}</p>
+        border: none;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        padding: 10px 20px;">Подтвердить заказ</a>
+      `;
+
+    let transporter = nodemailer.createTransport({
+      host: 'smtp.hostinger.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'ltopbusiness@ltop.pro', // замените на свой адрес электронной почты
+        pass: '123keygoR!', // замените на свой пароль
+      },
+    });
+
+    let mailOptions = {
+      from: 'ltopbusiness@ltop.pro', // замените на свой адрес электронной почты
+      to: email,
+      subject: 'Ltop',
+      html: `${textToSend}`, // Используйте html вместо text
+      // text: `${textToSend}!`,
+    };
+
+    transporter.sendMail(mailOptions, (error: any, info: any) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+  }
 
   @Post('send')
   async sendSms(@Body('phoneNumber') phoneNumber: string): Promise<any> {
