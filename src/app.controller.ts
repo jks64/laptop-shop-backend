@@ -386,15 +386,6 @@ export class AppController {
     textToSend = `
         <p>Нове замовленя! Номер замовлення #${data.orderId.id} товар: ${notebookTitlesString} ціна: ${productsPrice} грн. спосіб оплати
         ${data.paymentMethod} Имя: ${data.orderId.name} Номер телефона: ${data.orderId.phoneNumber} город: ${data.orderId?.city} відділення ${data.orderId?.station} email: ${data.orderId?.email}</p>
-        border: none;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-        padding: 10px 20px;">Подтвердить заказ</a>
       `;
 
     let transporter = nodemailer.createTransport({
