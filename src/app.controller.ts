@@ -393,7 +393,7 @@ export class AppController {
       port: 465,
       secure: true,
       auth: {
-        user: 'ltop.com.ua@ltop.pro ', // замените на свой адрес электронной почты
+        user: 'ltop.com.ua@ltop.pro', // замените на свой адрес электронной почты
         pass: '123keygoR!', // замените на свой пароль
       },
     });
