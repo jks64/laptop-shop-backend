@@ -440,6 +440,8 @@ export class AppController {
       ],
     };
 
+    //make here object with user
+
     try {
       const response = await axios.post(
         'https://e1gewr.api.infobip.com/sms/2/text/advanced',
