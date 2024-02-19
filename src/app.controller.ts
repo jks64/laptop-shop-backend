@@ -343,16 +343,17 @@ export class AppController {
 
     let transporter = nodemailer.createTransport({
       host: 'smtp.hostinger.com',
-      port: 465,
+      port: 
+      465,
       secure: true,
       auth: {
-        user: 'ltop.com.ua@ltop.pro ', // замените на свой адрес электронной почты
+        user: 'ltop.com.ua@ltop.pro', // замените на свой адрес электронной почты
         pass: '123keygoR!', // замените на свой пароль
       },
     });
 
     let mailOptions = {
-      from: 'ltop.com.ua@ltop.pro ', // замените на свой адрес электронной почты
+      from: 'ltop.com.ua@ltop.pro', // замените на свой адрес электронной почты
       to: email,
       subject: 'Ltop',
       html: `${textToSend}`, // Используйте html вместо text
