@@ -399,7 +399,7 @@ export class AppController {
     });
 
     let mailOptions = {
-      from: 'ltop.com.ua@ltop.pro ', // замените на свой адрес электронной почты
+      from: 'ltop.com.ua@ltop.pro', // замените на свой адрес электронной почты
       to: email,
       subject: 'Ltop',
       html: `${textToSend}`, // Используйте html вместо text
