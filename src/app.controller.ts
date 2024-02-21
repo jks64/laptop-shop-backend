@@ -277,8 +277,28 @@ export class AppController {
   @Post('createorder')
   async createOrder(@Body() orderData: any, @Res() response: Response) {
     try {
-      const newStation = await this.appService.createOrder(orderData);
-      response.status(200).send(200);
+      if (
+        orderData.name &&
+        orderData.secondName &&
+        orderData.phoneNumber &&
+        orderData.productIDs.length > 0
+      ) {
+        const newStation = await this.appService.createOrder(orderData);
+
+        if (newStation) {
+          response.status(200).send(200);
+        } else {
+          throw new Error('Order creation failed');
+        }
+      } else {
+        let errorMessage = 'Missing or invalid data: ';
+        if (!orderData.name) errorMessage += 'name, ';
+        if (!orderData.secondName) errorMessage += 'secondName, ';
+        if (!orderData.phoneNumber) errorMessage += 'phoneNumber, ';
+        if (!orderData.productIDs || orderData.productIDs.length === 0)
+          errorMessage += 'productIDs, ';
+        response.status(400).send(errorMessage);
+      }
     } catch (error) {
       console.error(error);
       response.status(500).send('Internal Server Error');
@@ -468,6 +488,11 @@ export class AppController {
         where: { orderId: lastOrder.id },
       });
 
+      if (products.length === 0) {
+        response.status(400).send('No products found for the latest order');
+        return;
+      }
+
       const productsIds = products.map((product) => product.laptopId);
       const productsWithLaptops =
         await this.laptopRepository.findByIds(productsIds);
@@ -494,8 +519,12 @@ export class AppController {
         ...lastOrder,
         products: laptopsWithImages,
       };
-
+      if (orderWithProducts.products.length === 0) {
+        response.status(400).send('No products found for the latest order');
+        return;
+      }
       console.log('orderWithProducts', orderWithProducts);
+
       response.send(orderWithProducts);
     } catch (error) {
       console.log(error);
