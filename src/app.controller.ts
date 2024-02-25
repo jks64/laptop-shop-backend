@@ -475,6 +475,13 @@ export class AppController {
     }
   }
 
+  @Post('dublicate')
+  async dublicateLaptop(@Req() request: Request, @Res() response: Response) {
+    const laptop = request.body;
+    const savedLaptop = await this.laptopRepository.save(laptop);
+    response.status(201).json(savedLaptop);
+  }
+
   @Get('order')
   async getLatestOrder(@Res() response: Response) {
     try {
