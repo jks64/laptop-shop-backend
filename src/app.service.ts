@@ -158,6 +158,7 @@ export class AppService {
       characteristicProcessor: laptopData.characteristicProcessor,
       characteristicStorage: laptopData.characteristicStorage,
       characteristicGraphics: laptopData.characteristicGraphics,
+      characteristicBatery: laptopData.characteristicBatery,
       inStock: laptopData.inStock === 'true',
     };
     console.log('updatedFields', updatedFields);
