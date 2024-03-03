@@ -42,6 +42,7 @@ import { JoinColumn, ManyToOne } from 'typeorm';
 import axios from 'axios';
 import * as https from 'follow-redirects/https';
 import * as nodemailer from 'nodemailer';
+import { Review } from './review.entity';
 
 const fsAny = fs as any;
 var { promisify } = require('util');
@@ -88,6 +89,8 @@ export class AppController {
     private stationRepository: Repository<Station>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
   ) {}
 
   @Get()
@@ -665,6 +668,26 @@ export class AppController {
     } catch (error) {
       console.error('Ошибка при сохранении продукта:', error);
       response.status(500).json({ message: 'Ошибка при сохранении продукта' });
+    }
+  }
+
+  @Post('review')
+  async addReview(@Res() response: Response, @Req() request: Request) {
+    try {
+      const newReview = await this.appService.createReview(request.body);
+      response.status(201).json(newReview); // Отправляем новый отзыв обратно на клиент с кодом статуса 201 (Created)
+    } catch (err) {
+      response.status(500).json({ message: `Server Error , ${err}` });
+    }
+  }
+
+  @Get('review')
+  async GetReviews(@Res() response: Response, @Req() request: Request) {
+    try {
+      const reviews = await this.appService.getAllReviews();
+      response.status(201).json(reviews); // Отправляем новый отзыв обратно на клиент с кодом статуса 201 (Created)
+    } catch (err) {
+      response.status(500).json({ message: `Server Error , ${err}` });
     }
   }
 

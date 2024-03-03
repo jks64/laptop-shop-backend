@@ -12,6 +12,7 @@ import { Station } from './station.entity';
 import { Product } from './product.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { Review } from './review.entity';
 
 @Module({
   imports: [
@@ -26,11 +27,11 @@ import { join } from 'path';
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
         synchronize: true,
-        entities: [Laptop, Image, Station, Product],
+        entities: [Laptop, Image, Station, Product, Review],
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([Laptop, Image, Station, Product]),
+    TypeOrmModule.forFeature([Laptop, Image, Station, Product, Review]),
     MulterModule.register({
       dest: './uploaded-photos',
     }),

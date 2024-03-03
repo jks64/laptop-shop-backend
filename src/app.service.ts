@@ -5,6 +5,7 @@ import { Laptop } from './laptop.entity';
 import { Image } from './image.entity';
 import { Station } from './station.entity';
 import { Product } from './product.entity';
+import { Review } from './review.entity';
 
 @Injectable()
 export class AppService {
@@ -17,7 +18,13 @@ export class AppService {
     private stationRepository: Repository<Station>,
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
+    @InjectRepository(Review)
+    private reviewRepository: Repository<Review>,
   ) {}
+
+  async getAllReviews() {
+    return this.reviewRepository.find();
+  }
 
   async getLaptops(): Promise<Laptop[]> {
     return this.laptopRepository.find();
@@ -46,6 +53,13 @@ export class AppService {
   //   console.log('trata', newImage);
 
   //   await this.imageRepository.save(newImage);
+
+  async createReview(reviewData: Partial<Review>) {
+    const newReview = this.reviewRepository.create(reviewData);
+
+    await this.reviewRepository.save(newReview);
+    return newReview;
+  }
 
   async createOrder(orderData: Partial<Station>): Promise<Station> {
     const newOrder = this.stationRepository.create(orderData);
