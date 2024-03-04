@@ -234,6 +234,21 @@ export class AppController {
     res.status(201).send();
     return updatedLaptop;
   }
+  @Patch('confirmed/:reviewId')
+  async updateConfirmed(
+    @Param('reviewId') reviewId: number,
+    @Body() confirmed,
+    @Req() request: Request,
+    @Res() res: Response,
+  ) {
+    const updateConfirmed = await this.appService.updateConfirmed(
+      reviewId,
+      confirmed,
+    );
+
+    res.status(201).send();
+    return updateConfirmed;
+  }
 
   @Patch(':laptopId')
   @UseInterceptors(

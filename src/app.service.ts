@@ -135,6 +135,23 @@ export class AppService {
     return updatedLaptop;
   }
 
+  async updateConfirmed(reviewId: number, confirmed) {
+    const review = await this.reviewRepository.findOne({
+      where: { id: reviewId },
+    });
+    const upedateFields = {
+      confirmed: confirmed.confirmed === true,
+    };
+    console.log('upedateFields', upedateFields);
+    console.log('hidden', confirmed);
+    await this.reviewRepository.update({ id: review.id }, upedateFields);
+    const updatedLaptop = await this.reviewRepository.findOne({
+      where: { id: review.id },
+    });
+    console.log(updatedLaptop);
+    return updatedLaptop;
+  }
+
   async updateLaptop(
     laptopId: number,
     laptopData,
