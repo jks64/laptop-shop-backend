@@ -5,6 +5,7 @@ import {
   JoinColumn,
   OneToMany,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Image } from './image.entity';
 
